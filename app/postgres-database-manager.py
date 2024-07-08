@@ -234,7 +234,7 @@ def main():
         filename = 'backup-{}-{}.dump'.format(timestr, postgres_db_backup)
         local_file_path = '{}{}'.format(BACKUP_PATH, filename)
 
-        backupPostgresDb(postgres_host_backup, postgres_db_backup, postgres_port_backup, postgres_user_backup, postgres_password_backup, filename, args.verbose)
+        backupPostgresDb(postgres_host_backup, postgres_db_backup, postgres_port_backup, postgres_user_backup, postgres_password_backup, local_file_path, args.verbose)
         createDatabseUser(postgres_host_restore, postgres_port_restore, postgres_user_restore, postgres_password_restore, postgres_new_user_restore, postgres_new_password_restore, args.verbose)
         # createDatabase(postgres_host_restore, postgres_port_restore, postgres_user_restore, postgres_password_restore, postgres_new_user_restore, postgres_new_user_restore, args.verbose)
         createDatabase(postgres_host_restore, postgres_port_restore, postgres_user_restore, postgres_password_restore, postgres_new_user_restore, postgres_db_restore, args.verbose)
