@@ -1,0 +1,6 @@
+argparse
+configparser
+cryptography
+datetime
+psycopg2-binary
+pymysql
