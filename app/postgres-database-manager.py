@@ -129,7 +129,7 @@ def restorePostgresDb(db_host, db, port, user, password, backup_file, verbose):
 
     return output
 
-def fixDatabaseOwner(db_host, db_port, user_name, user_password, db_name):
+def fixDatabaseOwner(db_host, db_port, user_name, user_password, db_user, db_name):
     """
     Fix database owner.
     """
@@ -139,19 +139,19 @@ def fixDatabaseOwner(db_host, db_port, user_name, user_password, db_name):
         connection = psycopg2.connect(host=db_host, port=db_port, user=user_name, password=user_password, dbname=db_name)
         connection.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
         with connection.cursor() as cursor:
-            cursor.execute('SELECT \'ALTER TABLE \'|| schemaname || \'."\' || tablename ||\'" OWNER TO "{}";\' FROM pg_tables WHERE NOT schemaname IN (\'pg_catalog\', \'information_schema\') ORDER BY schemaname, tablename;'.format(db_name))
+            cursor.execute('SELECT \'ALTER TABLE \'|| schemaname || \'."\' || tablename ||\'" OWNER TO "{}";\' FROM pg_tables WHERE NOT schemaname IN (\'pg_catalog\', \'information_schema\') ORDER BY schemaname, tablename;'.format(db_user))
             for row in cursor.fetchall():
                 cursor.execute(row[0])
 
-            cursor.execute('SELECT \'ALTER SEQUENCE \'|| sequence_schema || \'."\' || sequence_name ||\'" OWNER TO "{}";\' FROM information_schema.sequences WHERE NOT sequence_schema IN (\'pg_catalog\', \'information_schema\') ORDER BY sequence_schema, sequence_name;'.format(db_name))
+            cursor.execute('SELECT \'ALTER SEQUENCE \'|| sequence_schema || \'."\' || sequence_name ||\'" OWNER TO "{}";\' FROM information_schema.sequences WHERE NOT sequence_schema IN (\'pg_catalog\', \'information_schema\') ORDER BY sequence_schema, sequence_name;'.format(db_user))
             for row in cursor.fetchall():
                 cursor.execute(row[0])
 
-            cursor.execute('SELECT \'ALTER VIEW \'|| table_schema || \'."\' || table_name ||\'" OWNER TO "{}";\' FROM information_schema.views WHERE NOT table_schema IN (\'pg_catalog\', \'information_schema\') ORDER BY table_schema, table_name;'.format(db_name))
+            cursor.execute('SELECT \'ALTER VIEW \'|| table_schema || \'."\' || table_name ||\'" OWNER TO "{}";\' FROM information_schema.views WHERE NOT table_schema IN (\'pg_catalog\', \'information_schema\') ORDER BY table_schema, table_name;'.format(db_user))
             for row in cursor.fetchall():
                 cursor.execute(row[0])
 
-            cursor.execute('SELECT \'ALTER TABLE \'|| oid::regclass::text ||\' OWNER TO "{}";\' FROM pg_class WHERE relkind = \'m\' ORDER BY oid;'.format(db_name))
+            cursor.execute('SELECT \'ALTER TABLE \'|| oid::regclass::text ||\' OWNER TO "{}";\' FROM pg_class WHERE relkind = \'m\' ORDER BY oid;'.format(db_user))
             for row in cursor.fetchall():
                 cursor.execute(row[0])
 
@@ -273,7 +273,7 @@ def main():
             # swapRestoreActive(postgres_host_restore, postgres_db_restore, postgres_db_backup, postgres_port_restore, postgres_user_restore, postgres_password_restore)
             swapRestoreNew(postgres_host_restore, postgres_db_restore, postgres_new_user_restore, postgres_port_restore, postgres_user_restore, postgres_password_restore)
 
-        fixDatabaseOwner(postgres_host_restore, postgres_port_restore, postgres_user_restore, postgres_password_restore, postgres_db_restore)
+        fixDatabaseOwner(postgres_host_restore, postgres_port_restore, postgres_user_restore, postgres_password_restore, postgres_new_user_restore, postgres_db_restore)
     elif args.action == 'delete':
         deleteDatabase(postgres_host_backup, postgres_db_restore, postgres_port_backup, postgres_user_backup, postgres_password_backup)
         deleteUser(postgres_host_backup, postgres_port_backup, postgres_user_backup, postgres_password_backup, postgres_new_user_restore)
