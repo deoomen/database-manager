@@ -2,6 +2,7 @@
 #
 #
 
+import os
 import argparse
 import configparser
 import logging
@@ -48,25 +49,39 @@ def createDatabase(host: str, port: int, user: str, password: str, newUser: str,
         cursor.execute('REVOKE CONNECT ON DATABASE "{}" FROM PUBLIC;'.format(databaseName))
         cursor.execute('GRANT ALL PRIVILEGES ON DATABASE "{}" TO "{}";'.format(databaseName, newUser))
 
-def backupPostgresDb(host: str, databaseName: str, port: int, user: str, password: str, destFile: str, verbose: bool) -> bytes:
+def backupPostgresDb(host: str, database_name: str, port: int, user: str, password: str, dest_file: str, verbose: bool) -> bytes:
     """
     Backup postgres database to a file.
     """
-    logging.info('Backing up database "{}"...'.format(databaseName))
+
+    logging.info('Backing up database "{}"...'.format(database_name))
+    os.environ["PGPASSWORD"] = password
+
     if verbose:
-        args = ['pg_dump',
-            '--dbname=postgresql://{}:{}@{}:{}/{}'.format(user, password, host, port, databaseName),
+        args = [
+            'pg_dump',
+            f'--dbname={database_name}',
+            f'--host={host}',
+            f'--port={port}',
+            f'--username={user}',
             '-Fc',
-            '-f', destFile,
-            '-v']
+            '-f', dest_file,
+            '-v'
+        ]
     else:
-        args = ['pg_dump',
-            '--dbname=postgresql://{}:{}@{}:{}/{}'.format(user, password, host, port, databaseName),
+        args = [
+            'pg_dump',
+            f'--dbname={database_name}',
+            f'--host={host}',
+            f'--port={port}',
+            f'--username={user}',
             '-Fc',
-            '-f', destFile]
+            '-f', dest_file
+        ]
 
     process = subprocess.Popen(args, stdout=subprocess.PIPE)
     output = process.communicate()[0]
+    os.environ["PGPASSWORD"] = ""
 
     if int(process.returncode) != 0:
         print('Command failed. Return code : {}'.format(process.returncode))
@@ -78,21 +93,35 @@ def restorePostgresDb(db_host, db, port, user, password, backup_file, verbose):
     """
     Restore postgres db from a file.
     """
+
     logging.info('Restoring database "{}"...'.format(db))
+    os.environ["PGPASSWORD"] = password
+
     if verbose:
-        args = ['pg_restore',
+        args = [
+            'pg_restore',
             '--no-owner',
-            '--dbname=postgresql://{}:{}@{}:{}/{}'.format(user, password, db_host, port, db),
+            f'--dbname={db}',
+            f'--host={db_host}',
+            f'--port={port}',
+            f'--username={user}',
             '-v',
-            backup_file]
+            backup_file
+        ]
     else:
-        args = ['pg_restore',
+        args = [
+            'pg_restore',
             '--no-owner',
-            '--dbname=postgresql://{}:{}@{}:{}/{}'.format(user, password, db_host, port, db),
-            backup_file]
+            f'--dbname={db}',
+            f'--host={db_host}',
+            f'--port={port}',
+            f'--username={user}',
+            backup_file
+        ]
 
     process = subprocess.Popen(args, stdout=subprocess.PIPE)
     output = process.communicate()[0]
+    os.environ["PGPASSWORD"] = ""
 
     if int(process.returncode) != 0:
         print('Command failed. Return code : {}'.format(process.returncode))
