@@ -273,7 +273,7 @@ def main():
             # swapRestoreActive(postgres_host_restore, postgres_db_restore, postgres_db_backup, postgres_port_restore, postgres_user_restore, postgres_password_restore)
             swapRestoreNew(postgres_host_restore, postgres_db_restore, postgres_new_user_restore, postgres_port_restore, postgres_user_restore, postgres_password_restore)
 
-        fixDatabaseOwner(postgres_host_restore, postgres_port_restore, postgres_user_restore, postgres_password_restore, postgres_new_user_restore)
+        fixDatabaseOwner(postgres_host_restore, postgres_port_restore, postgres_user_restore, postgres_password_restore, postgres_db_restore)
     elif args.action == 'delete':
         deleteDatabase(postgres_host_backup, postgres_db_restore, postgres_port_backup, postgres_user_backup, postgres_password_backup)
         deleteUser(postgres_host_backup, postgres_port_backup, postgres_user_backup, postgres_password_backup, postgres_new_user_restore)
